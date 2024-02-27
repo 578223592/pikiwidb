@@ -5,14 +5,12 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "log.h"
-
 #include <algorithm>
 #include <memory>
 
 #include "client.h"
-#include "command.h"
 #include "config.h"
+#include "log.h"
 #include "pikiwidb.h"
 #include "pstd_string.h"
 #include "slow_log.h"
@@ -28,7 +26,7 @@ void CmdRes::RedisAppendLen(std::string& str, int64_t ori, const std::string& pr
 
 void CmdRes::AppendStringVector(const std::vector<std::string>& strArray) {
   if (strArray.empty()) {
-    AppendArrayLen(-1);
+    AppendArrayLen(0);
     return;
   }
   AppendArrayLen(static_cast<int64_t>(strArray.size()));
@@ -128,6 +126,9 @@ void CmdRes::SetRes(CmdRes::CmdRet _ret, const std::string& content) {
       AppendStringRaw("-ERR increment would produce NaN or Infinity");
       AppendStringRaw(content);
       AppendStringRaw(CRLF);
+      break;
+    case kInvalidCursor:
+      AppendStringRaw("-ERR invalid cursor");
       break;
     default:
       break;
@@ -323,7 +324,6 @@ int PClient::handlePacket(const char* start, int bytes) {
 
   DEBUG("client {}, cmd {}", conn->GetUniqueId(), cmdName_);
 
-  PSTORE.SelectDB(db_);
   FeedMonitors(params_);
 
   //  const PCommandInfo* info = PCommandTable::GetCommandInfo(cmdName_);
@@ -400,12 +400,11 @@ PClient* PClient::Current() { return s_current; }
 
 PClient::PClient(TcpConnection* obj)
     : tcp_connection_(std::static_pointer_cast<TcpConnection>(obj->shared_from_this())),
-      db_(0),
+      dbno_(0),
       flag_(0),
       name_("clientxxx"),
       parser_(params_) {
   auth_ = false;
-  SelectDB(0);
   reset();
 }
 
@@ -498,15 +497,6 @@ void PClient::Close() {
     c->ActiveClose();
     tcp_connection_.reset();
   }
-}
-
-bool PClient::SelectDB(int db) {
-  if (PSTORE.SelectDB(db) >= 0) {
-    db_ = db;
-    return true;
-  }
-
-  return false;
 }
 
 void PClient::reset() {
@@ -622,10 +612,17 @@ void PClient::TransferToSlaveThreads() {
     auto slave_loop = tcp_connection->SelectSlaveEventLoop();
     auto id = tcp_connection->GetUniqueId();
     auto event_object = loop->GetEventObject(id);
-    loop->Unregister(event_object);
-    event_object->SetUniqueId(-1);
-    slave_loop->Register(event_object, 0);
-    tcp_connection->ResetEventLoop(slave_loop);
+    auto del_conn = [loop, slave_loop, event_object]() {
+      loop->Unregister(event_object);
+      event_object->SetUniqueId(-1);
+      auto tcp_connection = std::dynamic_pointer_cast<TcpConnection>(event_object);
+      assert(tcp_connection);
+      tcp_connection->ResetEventLoop(slave_loop);
+
+      auto add_conn = [slave_loop, event_object]() { slave_loop->Register(event_object, 0); };
+      slave_loop->Execute(std::move(add_conn));
+    };
+    loop->Execute(std::move(del_conn));
   }
 }
 
@@ -645,7 +642,7 @@ void PClient::FeedMonitors(const std::vector<std::string>& params) {
   }
 
   char buf[512];
-  int n = snprintf(buf, sizeof buf, "+[db%d %s:%d]: \"", PSTORE.GetDB(), s_current->PeerIP().c_str(),
+  int n = snprintf(buf, sizeof buf, "+[db%d %s:%d]: \"", s_current->GetCurrentDB(), s_current->PeerIP().c_str(),
                    s_current->PeerPort());
 
   assert(n > 0);

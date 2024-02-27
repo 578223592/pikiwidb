@@ -8,13 +8,16 @@
 #pragma once
 
 #include <map>
-#include "pstring.h"
+#include <string>
+#include <vector>
+
+#include "common.h"
 
 namespace pikiwidb {
 
 enum BackEndType {
   kBackEndNone = 0,
-  kBackEndLeveldb = 1,
+  kBackEndRocksDB = 1,
   kBackEndMax = 2,
 };
 
@@ -26,6 +29,8 @@ struct PConfig {
   unsigned short port;
 
   int timeout;
+
+  PString dbpath;
 
   PString loglevel;
   PString logdir;  // the log directory, differ from redis
@@ -77,6 +82,11 @@ struct PConfig {
   PString backendPath;
   int backendHz;  // the frequency of dump to backend
 
+  int64_t max_client_response_size;
+
+  int db_instance_num;
+  uint64_t rocksdb_ttl_second;
+  uint64_t rocksdb_periodic_second;
   PConfig();
 
   bool CheckArgs() const;

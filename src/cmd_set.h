@@ -21,4 +21,92 @@ class SIsMemberCmd : public BaseCmd {
   void DoCmd(PClient *client) override;
 };
 
+class SAddCmd : public BaseCmd {
+ public:
+  SAddCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class SUnionStoreCmd : public BaseCmd {
+ public:
+  SUnionStoreCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class SRemCmd : public BaseCmd {
+ public:
+  SRemCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class SUnionCmd : public BaseCmd {
+ public:
+  SUnionCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class SInterCmd : public BaseCmd {
+ public:
+  SInterCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class SInterStoreCmd : public BaseCmd {
+ public:
+  SInterStoreCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class SCardCmd : public BaseCmd {
+ public:
+  SCardCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class SMoveCmd : public BaseCmd {
+ public:
+  SMoveCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
 }  // namespace pikiwidb

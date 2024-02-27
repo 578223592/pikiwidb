@@ -5,14 +5,16 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "cmd_table_manager.h"
 #include <memory>
+
 #include "cmd_admin.h"
 #include "cmd_hash.h"
 #include "cmd_set.h"
 #include "cmd_keys.h"
 #include "cmd_kv.h"
+#include "cmd_list.h"
 #include "cmd_set.h"
+#include "cmd_table_manager.h"
 
 namespace pikiwidb {
 
@@ -38,10 +40,12 @@ void CmdTableManager::InitCmdTable() {
 
   // server
   ADD_COMMAND(Flushdb, 1);
+  ADD_COMMAND(Flushall, 1);
+  ADD_COMMAND(Select, 2);
 
   // keyspace
   ADD_COMMAND(Del, -2);
-  ADD_COMMAND(Exists, 2);
+  ADD_COMMAND(Exists, -2);
 
   // kv
   ADD_COMMAND(Get, 2);
@@ -61,21 +65,43 @@ void CmdTableManager::InitCmdTable() {
   ADD_COMMAND(BitOp, -4);
   ADD_COMMAND(BitCount, -2);
   ADD_COMMAND(GetBit, 3);
+  ADD_COMMAND(GetRange, 4);
+  ADD_COMMAND(SetRange, 4);
   ADD_COMMAND(Decr, 2);
   ADD_COMMAND(SetBit, 4);
 
   // hash
   ADD_COMMAND(HSet, -4);
   ADD_COMMAND(HGet, 3);
+  ADD_COMMAND(HDel, -3);
   ADD_COMMAND(HMSet, -4);
   ADD_COMMAND(HMGet, -3);
   ADD_COMMAND(HGetAll, 2);
   ADD_COMMAND(HKeys, 2);
   ADD_COMMAND(HLen, 2);
   ADD_COMMAND(HStrLen, 3);
+  ADD_COMMAND(HScan, -3);
+  ADD_COMMAND(HVals, 2);
+  ADD_COMMAND(HIncrbyFloat, 4);
+  ADD_COMMAND(HRandField, -2);
 
   // set
   ADD_COMMAND(SIsMember, 3);
+  ADD_COMMAND(SAdd, -3);
+  ADD_COMMAND(SUnionStore, -3);
+  ADD_COMMAND(SRem, -3);
+  ADD_COMMAND(SInter, -2);
+  ADD_COMMAND(SUnion, -2);
+  ADD_COMMAND(SInterStore, -3);
+  ADD_COMMAND(SCard, 2);
+  ADD_COMMAND(SMove, 4);
+
+  // list
+  ADD_COMMAND(LPush, -3);
+  ADD_COMMAND(RPush, -3);
+  ADD_COMMAND(RPop, 2);
+  ADD_COMMAND(LRem, 4);
+  ADD_COMMAND(LRange, 4);
 }
 
 std::pair<BaseCmd*, CmdRes::CmdRet> CmdTableManager::GetCommand(const std::string& cmdName, PClient* client) {
@@ -102,5 +128,4 @@ bool CmdTableManager::CmdExist(const std::string& cmd) const {
 }
 
 uint32_t CmdTableManager::GetCmdId() { return ++cmdId_; }
-
 }  // namespace pikiwidb

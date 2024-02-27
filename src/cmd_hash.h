@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <string_view>
 #include "base_cmd.h"
 
 namespace pikiwidb {
@@ -25,6 +26,17 @@ class HSetCmd : public BaseCmd {
 class HGetCmd : public BaseCmd {
  public:
   HGetCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class HDelCmd : public BaseCmd {
+ public:
+  HDelCmd(const std::string &name, int16_t arity);
 
  protected:
   bool DoInitial(PClient *client) override;
@@ -97,6 +109,54 @@ class HStrLenCmd : public BaseCmd {
 
  private:
   void DoCmd(PClient *client) override;
+};
+
+class HScanCmd : public BaseCmd {
+ public:
+  HScanCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+
+  static constexpr const char *kMatchSymbol = "match";
+  static constexpr const char *kCountSymbol = "count";
+};
+
+class HValsCmd : public BaseCmd {
+ public:
+  HValsCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class HIncrbyFloatCmd : public BaseCmd {
+ public:
+  HIncrbyFloatCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+};
+
+class HRandFieldCmd : public BaseCmd {
+ public:
+  HRandFieldCmd(const std::string &name, int16_t arity);
+
+ protected:
+  bool DoInitial(PClient *client) override;
+
+ private:
+  void DoCmd(PClient *client) override;
+  static constexpr std::string_view kWithValueString = "withvalues";
 };
 
 }  // namespace pikiwidb
